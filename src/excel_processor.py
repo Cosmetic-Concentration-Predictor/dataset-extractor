@@ -3,12 +3,15 @@ import pandas as pd
 import xlrd
 import re
 
+ROW_AVERAGE = 16
+
 
 class ExcelProcessor:
-    def __init__(self, input_folder, output_csv, output_txt):
+    def __init__(self, input_folder, output_csv, output_txt, processing_data=False):
         self.input_folder = input_folder
         self.output_csv = output_csv
         self.output_txt = open(output_txt, "w")
+        self.processing_data = processing_data
 
     def process_excel_files(self):
         result_df = pd.DataFrame(columns=["acronym", "code", "concentration"])
@@ -96,9 +99,10 @@ class ExcelProcessor:
                 self.output_txt.write(f"{file_path}: {sheet.name}\n{table_df}\n\n")
 
                 if not table_df.empty:
-                    table_df = self.add_missing_rows(table_df)
-                    rotated_dfs = self.rotate_dataframe(table_df)
-                    result_df = pd.concat([result_df, rotated_dfs], ignore_index=True)
+                    if self.processing_data:
+                        table_df = self.add_missing_rows(table_df)
+                        table_df = self.rotate_dataframe(table_df)
+                    result_df = pd.concat([result_df, table_df], ignore_index=True)
                     result_df.dropna(inplace=True)
             # else:
             #     print(f"{file_path}: {sheet.name}")
@@ -131,7 +135,7 @@ class ExcelProcessor:
 
         return None, None, None, None
 
-    def add_missing_rows(self, df, target_rows=16):
+    def add_missing_rows(self, df, target_rows=ROW_AVERAGE):
         current_rows = len(df)
 
         if current_rows >= target_rows:
