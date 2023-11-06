@@ -12,12 +12,14 @@ class ExcelProcessor:
         self.output_csv = output_csv
         self.output_txt = open(output_txt, "w")
         self.processing_data = processing_data
+        self.total_sheets = 0
+        self.total_unread_sheets = 0
 
     def process_excel_files(self):
         result_df = pd.DataFrame(columns=["acronym", "code", "concentration"])
 
         for filename in os.listdir(self.input_folder):
-            print(filename)
+            # print(filename)
             if filename.lower().endswith(".xls"):
                 file_path = os.path.join(self.input_folder, filename)
                 result_df = pd.concat(
@@ -25,7 +27,9 @@ class ExcelProcessor:
                 )
             # else:
             #     print(filename)
+        print(f"Total Unread Sheets: {self.total_unread_sheets}")
 
+        print(self.total_sheets)
         result_df.to_csv(self.output_csv, index=False)
 
     def process_xls(self, file_path):
@@ -104,8 +108,10 @@ class ExcelProcessor:
                         table_df = self.rotate_dataframe(table_df)
                     result_df = pd.concat([result_df, table_df], ignore_index=True)
                     result_df.dropna(inplace=True)
-            # else:
-            #     print(f"{file_path}: {sheet.name}")
+                    self.total_sheets += 1
+            else:
+                self.total_unread_sheets += 1
+                print(f"{file_path}: {sheet.name}")
 
         return result_df
 
@@ -121,6 +127,7 @@ class ExcelProcessor:
                     and (
                         sheet.cell_value(row_num, col_num + 2) == "Pour 1"
                         or sheet.cell_value(row_num, col_num + 2) == "%global"
+                        or sheet.cell_value(row_num, col_num + 2) == "Qtté th (g)"
                     )
                 ) or (
                     (
