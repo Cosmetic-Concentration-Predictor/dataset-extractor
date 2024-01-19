@@ -197,6 +197,6 @@ pyrightconfig.json
 data_files/
 data_files/*
 # output_files/
-# output_files/*
+output_files/*.txt
 test/
 test/*
